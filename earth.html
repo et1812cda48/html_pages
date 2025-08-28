@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>День</title>
+    </head>
+    <body></body>
+    <script>
+        let canvas, context, coords;
+
+        window.onload = function() {
+            canvas = document.createElement('canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            document.body.appendChild(canvas);
+            context = canvas.getContext('2d');
+            const delta = 10;
+            let border = canvas.height * 2 / 3, sign = -1;
+            let color = 'blue', x, y, n, r;
+            coords = []
+            x = canvas.width / 12; y = canvas.height / 8; n = 0;
+            while(x < canvas.width * 3 / 4) {
+                r = Math.floor(canvas.width/50*Math.random() + 20)
+                coords[n] = [x, y + Math.floor(40*Math.random() - 20), r, Math.floor(4*Math.random() + 3), Math.floor(4*Math.random() + 4), Math.floor(4*Math.random() + 5)];
+                x += Math.floor(canvas.width/10*Math.random() + r) + r;
+                n++;
+            }
+            draw_image(border, color);
+            sleep(2000);
+            setInterval(function() {
+                border += sign * delta;
+                if(border - sign*delta < canvas.height/2 && border >= canvas.height/2) {
+                    document.getElementsByTagName('title')[0].innerHTML = 'День';
+                    color = 'blue';
+                    coords = []
+                    x = canvas.width / 12; y = canvas.height / 9; n = 0;
+                    while(x < canvas.width * 3 / 4) {
+                        r = Math.floor(canvas.width/50*Math.random() + 20)
+                        coords[n] = [x, y + Math.floor(40*Math.random() - 20), r, Math.floor(4*Math.random() + 3), Math.floor(4*Math.random() + 4), Math.floor(4*Math.random() + 5)];
+                        x += Math.floor(canvas.width/10*Math.random() + r) + r;
+                        n++;
+                    }
+                }
+                if(border < canvas.height/2 && border - sign*delta >= canvas.height/2) {
+                    document.getElementsByTagName('title')[0].innerHTML = 'Ночь';
+                    color = 'darkgreen';
+                    coords = []
+                    x = canvas.width * 2 / 9; y = canvas.height * 19 / 20; n = 0;
+                    while(x < canvas.width * 9 / 10) {
+                        coords[n] = [x, y + Math.floor(7*Math.random() - 3), Math.floor(4*Math.random() + 1)];
+                        x += Math.floor(canvas.width/100*Math.random() + 30);
+                        n++;
+                    }
+                }
+                draw_image(border, color);
+                if(border <= canvas.height/3 || border >= canvas.height*2/3) {
+                    sign *= -1;
+                    sleep(5000);
+                }
+            }, 75);
+        }
+        function draw_image(border, top_color) {
+            let bottom_color, mountain_color, top_mountain;
+            let x, y, radius;
+            if(top_color == 'blue') {
+                bottom_color = 'green';
+                mountain_color = 'darkgray';
+                top_mountain = canvas.height / 5;
+            }
+            else {
+                bottom_color = 'darkblue';
+                mountain_color = 'black';
+                top_mountain = canvas.height * 4 / 5;
+            }
+            // top rectangle
+            context.fillStyle = top_color;
+            context.fillRect(0, 0, canvas.width, border);
+            // bottom rectangle
+            context.fillStyle = bottom_color;
+            context.fillRect(0, border, canvas.width, canvas.height - border);
+            // celestial bodies
+            if(top_color == 'blue') {
+                // sun 
+                context.fillStyle = 'yellow';
+                context.beginPath();
+                context.arc(canvas.width*6/7, canvas.height/11, 50, 0, 2*Math.PI, false);
+                context.closePath();
+                context.fill();
+                // clouds
+                context.fillStyle = 'white';
+                for(let elem of coords) {
+                    x = elem[0]; y = elem[1]; radius = elem[2];
+                    k = elem[3]; q = elem[4]; p = elem[5];
+                    context.beginPath();
+                    context.moveTo(x - radius, y - radius*k/q);
+                    context.bezierCurveTo(x + radius*3/p, y - radius*3/q, x, y - radius, x, y - radius*q/p);
+                    context.bezierCurveTo(x + radius*2/k, y - radius*2/k, x + radius*3/q, y - radius/2, x + radius*3/2, y);
+                    context.bezierCurveTo(x + radius*3/2, y + radius*q/p, x + radius*k/q, y + radius*k/p, x + radius/q, y + radius*2/k);
+                    context.bezierCurveTo(x - radius*k/q, y + radius*2/k, x - radius*q/p, y + radius*2/k, x - radius*k/q, y + radius*q/k);
+                    context.bezierCurveTo(x - radius*q/p, y + radius*k/q, x - radius, y + radius*2, x - radius*9/k, y);
+                    context.bezierCurveTo(x - radius*9/k, y - radius, x - radius*k/p, y - radius*q/k, x - radius, y - radius*k/q);
+                    //context.lineTo(x - radius, y - radius*3/4);
+                    context.closePath();
+                    context.fill();
+                }
+            }
+            else {
+                // moon
+                context.fillStyle = 'white';
+                context.beginPath();
+                context.arc(canvas.width/11, canvas.height*7/8, 20, 0, 2*Math.PI, false);
+                context.closePath();
+                context.fill();
+                // stars
+                for(let elem of coords) {
+                    x = elem[0]; y = elem[1]; radius = elem[2];
+                    context.beginPath();
+                    context.moveTo(x - radius, y - radius);
+                    context.lineTo(x - Math.floor(radius/4), y);
+                    context.lineTo(x - radius, y + radius);
+                    context.lineTo(x, y + Math.floor(radius/4));
+                    context.lineTo(x + radius, y + radius);
+                    context.lineTo(x + Math.floor(radius/4), y);
+                    context.lineTo(x + radius, y - radius);
+                    context.lineTo(x, y - Math.floor(radius/4));
+                    context.lineTo(x - radius, y - radius);
+                    context.closePath();
+                    context.fill();
+                }
+            }
+            // mountain
+            context.fillStyle = mountain_color;
+            context.beginPath();
+            context.moveTo(canvas.width/10, border);
+            context.lineTo(canvas.width*3/10, top_mountain);
+            context.lineTo(canvas.width*2/5, border);
+            context.lineTo(canvas.width/10, border);
+            context.closePath();
+            context.fill();
+
+        }
+        function sleep(milliseconds) {
+            const date = Date.now();
+            let currentDate = null;
+            do {
+                currentDate = Date.now();
+            } while (currentDate - date < milliseconds);
+        }
+    </script>
+</html>

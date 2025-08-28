@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script>
+            const canvas = document.getElementById('canvas');
+            let circle;
+
+            window.onload = function() {    
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                let = context = canvas.getContext('2d');
+                create_circle();
+            }
+
+            function create_circle() {
+                circle = setInterval(function() {
+                    context.fillStyle = getRandomColor(false);
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    paint_circles(context, canvas.width/2, canvas.height/2, 2);
+                }, 1000);
+            }
+
+            async function paint_circles(context, x, y, start_radius) {
+                for(let r=start_radius; r<canvas.width*3/4 && r<canvas.height*3/4; r+=5) {
+                    context.beginPath();
+                    context.arc(canvas.width/2, canvas.height/2, r, 0, 2*Math.PI, false);
+                    context.closePath();
+                    context.strokeStyle = getRandomColor(true);
+                    context.stroke();
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                await new Promise(resolve => setTimeout(resolve, 20000));
+                clearInterval(circle);
+                context.fillStyle = getRandomColor(false);
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                //create_circle();
+            }
+
+            function getRandomColor(flag) {
+                let symbols = '0123456789ABCDEF';
+                let color = '#';
+                for(let i=0; i<6; i++) {
+                    if(flag) n = Math.floor(Math.random()*symbols.length);
+                    else n = symbols.length - Math.floor(Math.random()*symbols.length) - 1;
+                    color += symbols[n]
+                }
+                return color;
+            }
+        </script>
+    </body>
+</html>

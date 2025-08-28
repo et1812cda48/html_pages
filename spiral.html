@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Спираль</title>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script>
+            let canvas, context;
+
+            window.onload = function() {
+                canvas = document.getElementById("canvas");
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                context = canvas.getContext("2d");
+                create_spiral();
+            }
+
+            async function create_spiral() {
+                let spiral = setInterval(paint_spiral, 2000);
+                await new Promise(resolve => setTimeout(resolve, 50000));
+                await clearInterval(spiral);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                alert("Обновите страницу, чтобы запустить анимацию заново.");
+                //setTimeout(create_spiral, 5000);
+            }
+
+            async function paint_spiral() {
+                let background_color = getRandomColor();
+                let x, y, r_point, r_spiral, angle, sign = 1;
+                if(Math.random() < 0.5) sign *= -1;
+                r_spiral = x = y = 0;
+                angle = Math.random() * 2 * Math.PI;
+                context.fillStyle = background_color;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                while(true) {
+                    angle += sign*(Math.random() * Math.PI/4 + Math.PI/8);
+                    r_point = 5 + Math.floor(Math.random()*canvas.width/75);
+                    r_spiral += Math.floor(Math.random()*r_point);
+                    x = canvas.width/2 + Math.floor(r_spiral * Math.cos(angle));
+                    y = canvas.height/2 + Math.floor(r_spiral * Math.sin(angle));
+                    if((x < r_point || x > canvas.width - r_point) && (y < r_point || y > canvas.height - r_point)) break;
+                    draw_circle(x, y, r_point, background_color);
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+
+            function draw_circle(x, y, radius, background_color) {
+                let color;
+                context.beginPath();
+                context.arc( x, y, radius, 0, 2*Math.PI, false);
+                context.closePath();
+                do {
+                    color = getRandomColor();
+                } while(color == background_color);
+                context.fillStyle = color;
+                context.fill();
+            }
+
+            function getRandomColor() {
+                let symbols = '0123456789ABCDEF';
+                let color = '#';
+                for(let i=0; i<6; i++) {
+                    n = Math.floor(Math.random()*symbols.length);
+                    color += symbols[n]
+                }
+                return color;
+            }
+        </script>
+    </body>
+</html>

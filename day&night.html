@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рассвет</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" oncontextmenu="return false">Ваш браузер устарел.</canvas>
+    <script>
+        window.onload = function() {
+            var canvas = document.getElementById("canvas");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            console.log(canvas.width + ", " + canvas.height);
+
+            var context = canvas.getContext("2d");
+            var sun_x = canvas.width/5, sun_y = 90, delta = 5;
+
+            setInterval(function() {
+                if(sun_y < canvas.height/3) {
+                    sky_color = "blue";
+                    rock_color = "gray";
+                    sun_color = "yellow";
+                    moon = false;
+                }                
+                else if(sun_y < canvas.height/2 || sun_y < canvas.height*2/3) {
+                    sky_color = "pink";
+                    rock_color = "gray";
+                    sun_color = "orange";
+                    moon = false;
+                }                
+                else if(sun_y >= canvas.height*2/3) {
+                    sky_color = "purple";
+                    rock_color = "black";
+                    sun_color = "red";
+                    moon = true;
+                }
+
+                // sky
+                context.strokeStyle = sky_color;
+                context.fillStyle = sky_color;
+                context.strokeRect(0, 0, canvas.width, canvas.height);
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                // sun
+                context.fillStyle = sun_color;
+                context.beginPath();
+                context.arc(sun_x, sun_y, 50, 0, 2*Math.PI, false);
+                context.closePath();
+                context.fill();
+
+                // moon
+                if(moon) {
+                    context.fillStyle = "white";
+                    context.beginPath();
+                    context.arc(canvas.width*3/4, 90, 20, 0, 2*Math.PI, false);
+                    context.closePath();
+                    context.fill();
+                }
+
+                // rock
+                context.strokeStyle = rock_color;
+                context.fillStyle = rock_color;
+                context.beginPath();
+                context.moveTo(0, canvas.height/3);
+                context.lineTo(canvas.width/3, canvas.height*5/6);
+                context.lineTo(0, canvas.height*5/6);
+                context.lineTo(0, canvas.height/3);
+                context.closePath();
+                context.fill();
+
+                // forest
+                context.strokeStyle = "green";
+                for(var x=canvas.width*2/3; x<canvas.width-50; x+=40) {
+                    context.fillStyle = "brown";
+                    context.fillRect(x, canvas.height*5/6-50, 20, 75);
+                    context.fillStyle = "green";
+                    for(var y=canvas.height*5/6-50; y>canvas.height*2/3; y-=20) {
+                        context.beginPath();
+                        context.moveTo(x-15, y);
+                        context.lineTo(x+10, y-25);
+                        context.lineTo(x+35, y);
+                        context.lineTo(x-15, y);
+                        context.closePath();
+                        context.fill();
+                    }
+                }
+
+                // grass
+                context.strokeRect(0, canvas.height*5/6, canvas.width, canvas.height);
+                context.fillRect(0, canvas.height*5/6, canvas.width, canvas.height);
+
+                // move
+                if(sun_y == 90 && sun_x > canvas.width/5) sun_x -= delta;
+                else if(sun_y > 90 && sun_x == canvas.width*4/5) sun_y -= delta;
+                else sun_y += delta;
+                if(sun_y > canvas.height*5/6 && sun_x < canvas.width/2) sun_x = canvas.width*4/5;
+            }, 100);
+        };
+    </script>
+</body>
+</html>

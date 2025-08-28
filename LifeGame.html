@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+    		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>LifeGame</title>
+	</head>
+	<body>
+		<canvas id="canvas" oncontextmenu="return false">Ваш браузер устарел.</canvas>
+		<script>
+			var canvas, context;
+			var color = "darkblue", delta = 30, born_radius = 15;
+
+			class Creature {
+				constructor() {
+					this.dv = Math.floor(Math.random() * 4);
+					this.life_time = Math.floor(20*Math.random() + 100);
+					this.x = Math.floor(Math.random() * (canvas.width - 2*delta) + delta);
+					this.y = Math.floor(Math.random() * (canvas.height - 2*delta) + delta);
+					this.radius = born_radius;
+					this.next = null;
+				}
+				Move() {
+					if(Math.random() < 0.2) this.dv = Math.floor(Math.random() * 4);
+					switch(this.dv) {
+						case 0: if(this.x > delta) this.x -= delta; break;
+						case 1: if(this.x < canvas.width - delta) this.x += delta; break;
+						case 2: if(this.y > delta) this.y -= delta; break;
+						case 3: if(this.y < canvas.height - delta) this.y += delta; break;
+					}
+				}
+				Draw() {
+					let color;
+					if(this.radius >= delta) color = "red";
+					else color = "yellow";
+					context.fillStyle = color;
+                	context.beginPath();
+                	context.arc(this.x, this.y, this.radius, 0, 2*Math.PI, false);
+                	context.closePath();
+                	context.fill();
+				}
+				Combine() {
+					let cr = this, c = this.next;
+					while(c != null) {
+						if(Math.sqrt(Math.pow(this.x - c.x, 2) + Math.pow(this.y - c.y, 2)) < this.radius + c.radius) {
+							cr.next = c.next;			
+							this.radius += c.radius;
+							c = null;
+						}
+						cr = cr.next;
+						if(cr != null) c = cr.next;
+					}
+				}
+				Born() {
+					if(this.radius < 3/2*delta) return;
+					this.life_time = Math.floor(Math.random() * 20 + 100);
+					this.radius = born_radius;
+					let c;
+					for(var i=0; i<3; i++) {
+						c = new Creature();
+						c.next = this.next;
+						this.next = c;
+					}
+				}
+				Death(head) {
+					let cr = head, c = head.next;
+					while(c != this) {
+						cr = c;
+						c = c.next;
+					}
+					cr.next = c.next;
+					c = null;
+					return cr;
+				}
+			}
+
+			window.onload = function() {
+            	canvas = document.getElementById("canvas");
+            	canvas.width = window.innerWidth;
+            	canvas.height = window.innerHeight;
+            	console.log(canvas.width + ", " + canvas.height);
+				context = canvas.getContext("2d");
+				let creature, head = new Creature();
+				var i, n;
+				setInterval(function() {
+					// background
+					context.strokeStyle = color;
+                	context.fillStyle = color;
+                	context.strokeRect(0, 0, canvas.width, canvas.height);
+                	context.fillRect(0, 0, canvas.width, canvas.height);
+					// creatures
+					if(head.next == null) {
+						n = prompt('Со скольки существ начать?', 10)
+						if(n <= 0) n = 10;
+						for(var i=0; i<n; i++) {
+							creature = new Creature();
+							creature.next = head.next;
+							head.next = creature;
+						} 
+					}
+					else creature = head.next;
+					while(creature != null) {
+						creature.Draw();
+						creature.Move();
+						creature.Combine();
+						creature.Born();
+						if(creature.life_time <= 0) creature = creature.Death(head);
+						creature.life_time--;
+						creature = creature.next;
+					}
+				}, 75);
+			}
+		</script>
+	</body>
+</html>

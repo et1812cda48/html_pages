@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Звездопад</title>
+    </head>
+    <body>
+        <canvas id="canvas" oncontextmenu="return false">Ваш браузер устарел.</canvas>
+        <script>
+            const canvas = document.getElementById('canvas');
+            let context;
+
+            class Star {
+                constructor() {
+                    let k = 0;
+                    this.x = Math.floor(Math.random()*(canvas.width - 200) + 200);
+                    this.y = Math.floor(80*Math.random() + 20);
+                    this.radius = Math.floor(4*Math.random() + 1);
+                    while(k == 0) k = Math.floor(3*Math.random() - 1);
+                    this.speed_x = k*Math.floor(40*Math.random() - 40);
+                    this.speed_y = Math.floor(20*Math.random() + 10);
+                    this.life_time = Math.floor(50*Math.random() + 70);
+                    this.drop_time = Math.floor(20*Math.random() + 20);
+                    this.next = null;
+                }
+                move() {
+                    if(this.life_time > this.drop_time) return;
+                    this.x += this.speed_x;
+                    this.y += this.speed_y;
+                }
+                paint() {
+                    let d = 1;
+                    context.beginPath();
+                    context.moveTo(this.x - this.radius, this.y - this.radius);
+                    context.lineTo(this.x - Math.floor(this.radius/4), this.y);
+                    context.lineTo(this.x - this.radius, this.y + this.radius);
+                    context.lineTo(this.x, this.y + Math.floor(this.radius/4));
+                    context.lineTo(this.x + this.radius, this.y + this.radius);
+                    context.lineTo(this.x + Math.floor(this.radius/4), this.y);
+                    context.lineTo(this.x + this.radius, this.y - this.radius);
+                    context.lineTo(this.x, this.y - Math.floor(this.radius/4));
+                    context.lineTo(this.x - this.radius, this.y - this.radius);
+                    context.closePath();
+                    context.fill();
+                }
+            }
+
+            function scenery() {
+                // sky
+                context.strokeStyle = 'darkblue';
+                context.fillStyle = 'darkblue';
+                context.beginPath();
+                context.strokeRect(0, 0, canvas.width, canvas.height*5/6);
+                context.fillRect(0, 0, canvas.width, canvas.height*5/6);
+                context.closePath();
+                // moon
+                context.strokeStyle = 'white';
+                context.fillStyle = 'white';
+                context.beginPath();
+                context.arc(100, 90, 50, 0, 2*Math.PI, false);
+                context.closePath();
+                context.fill();
+                // ground
+                context.strokeStyle = 'darkgreen';
+                context.fillStyle = 'darkgreen';
+                context.beginPath();
+                context.strokeRect(0, canvas.height*5/6, canvas.width, canvas.height);
+                context.fillRect(0, canvas.height*5/6, canvas.width, canvas.height);
+                context.closePath();
+            }
+
+            function mountains() {
+                context.strokeStyle = 'black';
+                context.fillStyle = 'black';
+                context.beginPath();
+                context.moveTo(canvas.width, canvas.height/3);
+                context.lineTo(canvas.width*2/3, canvas.height*5/6);
+                context.lineTo(canvas.width, canvas.height*5/6);
+                context.lineTo(canvas.width, canvas.height/3);
+                context.closePath();
+                context.fill();
+                context.beginPath();
+                context.moveTo(canvas.width*5/7, canvas.height/2);
+                context.lineTo(canvas.width*6/7, canvas.height*5/6);
+                context.lineTo(canvas.width*4/7, canvas.height*5/6);
+                context.lineTo(canvas.width*5/7, canvas.height/2);
+                context.closePath();
+                context.fill();
+                context.beginPath();
+                context.moveTo(canvas.width/5, canvas.height*3/5);
+                context.lineTo(0, canvas.height*5/6);
+                context.lineTo(canvas.width*2/5, canvas.height*5/6);
+                context.lineTo(canvas.width/5, canvas.height*3/5);
+                context.closePath();
+                context.fill();
+            }
+
+            window.onload = function() { 
+                const n = Math.floor(8*Math.random() + 4);
+                let star_root, star, past_star;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                context = canvas.getContext('2d');
+                star_root = new Star();
+                for(var i=0; i<n - 1; i++) {
+                    star = new Star();
+                    star.next = star_root;
+                    star_root = star;
+                }
+                setInterval(function() {
+                    scenery();
+                    context.strokeStyle = 'yellow';
+                    context.fillStyle = 'yellow';
+                    if(star_root.life_time <= 0) {
+                        star = star_root;
+                        star_root = star_root.next;
+                        delete star;
+                    }
+                    past_star = star_root;
+                    star = past_star.next;
+                    while(star != null) {
+                        if(star.life_time <= 0 || star.y > canvas.height*5/6 - 10) {
+                            past_star.next = star.next;
+                            delete star;
+                            star = past_star.next;
+                            continue;
+                        }
+                        star.paint();
+                        star.move();
+                        star.life_time -= 1;
+                        past_star = star;
+                        star = star.next;
+                    }
+                    if(Math.random() > 0.9) {
+                        star = new Star();
+                        star.next = star_root;
+                        star_root = star;
+                    }
+                    mountains();
+                }, 100);
+            }
+        </script>
+    </body>
+</html>
