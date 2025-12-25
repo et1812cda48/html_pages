@@ -7,12 +7,12 @@
         <canvas id="canvas"></canvas>
         <script>
             const canvas = document.getElementById('canvas');
-            let circle;
+            let context, circle;
 
             window.onload = function() {    
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-                let = context = canvas.getContext('2d');
+                context = canvas.getContext('2d');
                 create_circle();
             }
 
