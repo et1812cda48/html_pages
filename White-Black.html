@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Бело-черный мир</title>
+    </head>
+    <body></body>
+    <script>
+        let context, sun, mountains, isPaused = false;
+        let n_mountains = 6;
+
+        class Sun {
+            constructor(r) {
+                this._x = window.innerWidth - 5 / 2 * r;
+                this._y = window.innerHeight / 3;
+                this._radius = r;
+                this.change_speed();
+                this._down_flag = -1;
+            }
+            change_speed() {
+                this._speed = Math.floor(1 + Math.random() * 6);
+            }
+            move() {
+                let delta = 0.8;
+                this._y += this._down_flag * this._speed;
+                if(this.check_horizont()) {
+                    this._down_flag *= -1;
+                    if(Math.random() > delta) this.change_speed();
+                }
+            }
+            check_horizont() {
+                let delta = 2 * this._radius;
+                if(this._y > window.innerHeight - delta) this._y = window.innerHeight - delta
+                return this._y >= window.innerHeight - delta || this._y <= delta;
+            }
+            draw() {
+                let color = 'black';
+                if(this._y > window.innerHeight/2 - 3/2*this._radius && this._y < window.innerHeight/2 + 3/2*this._radius) color = 'gray';
+                else if(this._y >= window.innerHeight/2 + 3/2*this._radius) color = 'white';
+                context.beginPath();
+                context.arc(this._x, this._y, this._radius, 0, 2*Math.PI, false);
+                context.closePath();
+                context.fillStyle = color;
+                context.fill();
+            }
+        }
+
+        class Mountain {
+            constructor(x_range, y_range) {
+                this.x_range = x_range;
+                this.y_range = y_range;
+                this.x1_old = this.num_generator(this.x_range[0], this.x_range[1]); this.x2_old = this.num_generator(this.x_range[0], this.x_range[1]);
+                this.x3_old = this.num_generator(this.x_range[0], this.x_range[1]); this.x4_old = this.x2_old;
+                this.y_up_old = this.num_generator(this.y_range[0], this.y_range[1]); this.y_down_old = window.innerHeight - this.y_up_old;         
+                this.refresh_new_coords();       
+            }
+            num_generator(min, max) {
+                return Math.floor(min + Math.random() * (max - min + 1));
+            }
+            refresh_new_coords() {
+                this.x1_new = this.num_generator(this.x_range[0], this.x_range[1]);
+                this.x2_new = this.num_generator(this.x_range[0], this.x_range[1]);
+                this.x3_new = this.num_generator(this.x_range[0], this.x_range[1]);
+                this.y_up_new = this.num_generator(this.y_range[0], this.y_range[1]);
+                if(Math.random() < 0.5) {
+                    this.y_down_new = window.innerHeight - this.y_up_new;
+                    this.x4_new = this.x2_new;
+                }
+                else {
+                    this.y_down_new = this.num_generator(window.innerHeight - this.y_range[1], window.innerHeight - this.y_range[0]);
+                    this.x4_new = this.num_generator(window.innerHeight - this.x_range[0], window.innerHeight - this.x_range[1]);
+                }
+            }
+            move() {
+                if(this.x1_new != this.x1_old) this.x1_old += Math.sign(this.x1_new - this.x1_old);
+                if(this.x2_new != this.x2_old) this.x2_old += Math.sign(this.x2_new - this.x2_old);
+                if(this.x3_new != this.x3_old) this.x3_old += Math.sign(this.x3_new - this.x3_old);
+                if(this.x4_new != this.x4_old) this.x4_old += Math.sign(this.x4_new - this.x4_old);
+                if(this.y_up_new != this.y_up_old) this.y_up_old += Math.sign(this.y_up_new - this.y_up_old);
+                if(this.y_down_new != this.y_down_old) this.y_down_old += Math.sign(this.y_down_new - this.y_down_old);
+            }
+            draw(up_color, down_color) {
+                context.strokeStyle = up_color;
+                context.fillStyle = up_color;
+                context.beginPath();
+                context.moveTo(this.x1_old, window.innerHeight/2);
+                context.lineTo(this.x2_old, this.y_up_old);
+                context.lineTo(this.x3_old, window.innerHeight/2);
+                context.closePath();
+                context.fill();
+                context.strokeStyle = down_color;
+                context.fillStyle = down_color;
+                context.beginPath();
+                context.moveTo(this.x1_old, window.innerHeight/2);
+                context.lineTo(this.x4_old, this.y_down_old);
+                context.lineTo(this.x3_old, window.innerHeight/2);
+                context.closePath();
+                context.fill();
+            }
+            is_equals() {
+                return this.x1_old == this.x1_new && this.x2_old == this.x2_new && this.x3_old == this.x3_new && this.x4_old == this.x4_new && this.y_up_old == this.y_up_new && this.y_down_old == this.y_down_new;
+            }
+        }
+
+        function draw_background(up_color, down_color) {
+            context.fillStyle = up_color;
+            context.fillRect(0, 0, window.innerWidth, Math.floor(window.innerHeight / 2));
+            context.fill();
+            context.fillStyle = down_color;
+            context.fillRect(0, Math.floor(window.innerHeight / 2), window.innerWidth, window.innerHeight);
+            context.fill();
+        }
+
+        async function sleep(ms) {
+            isPaused = true;
+            await new Promise(resolve => setTimeout(resolve, ms));
+            isPaused = false;
+        }
+
+        async function draw_scene() {
+            if(isPaused) return;
+            // background colors
+            let up_color = 'white', down_color = 'black';
+            draw_background(up_color, down_color);
+            sun.draw();
+            for(let i=0; i<n_mountains; i++) {
+                mountains[i].draw(down_color, up_color);
+                mountains[i].move();
+                if(mountains[i].is_equals()) mountains[i].refresh_new_coords();
+            }
+            if(sun.check_horizont()) await sleep(2000);
+            sun.move();
+        }
+
+        window.onload = function() {
+            let canvas = document.createElement('canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            document.getElementsByTagName('body')[0].append(canvas);
+            context = canvas.getContext('2d');
+            sun = new Sun(Math.floor(canvas.height / 30));
+            mountains = [];
+            for(let i=0; i<n_mountains; i++) {
+                mountains.push(new Mountain([window.innerWidth/40, window.innerWidth*37/40], [window.innerHeight*9/20, window.innerHeight/6]));
+            }
+            setInterval(() => draw_scene(), 75);
+        }
+    </script>
+</html>
